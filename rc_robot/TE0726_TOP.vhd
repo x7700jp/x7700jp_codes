@@ -217,8 +217,9 @@ architecture RTL of TE0726_TOP is
 
 	--
 	signal   sGPI     : std_logic_vector(3 downto 0) ;
-	type tRCIN_ARRY is array (0 to 1) of std_logic_vector(3 downto 0);
-	signal   rRCIN    : tRCIN_ARRY                    := (others => (others => '0'));
+	type tRCIN_ARRY is array (0 to 1) of std_logic_vector(1 downto 0);
+	constant cRCIN    : tRCIN_ARRY                    := (others =>(others => '0'));
+	signal   rRCIN    : tRCIN_ARRY                    := cRCIN;
 	signal   rBUTTON  : std_logic_vector( 1 downto 0) := (others => '0');
 	signal   sRCV4    : std_logic_vector(31 downto 0);
 	signal   sRCV4_PL : std_logic_vector(31 downto 0);
@@ -277,12 +278,13 @@ begin
 	P_LT : process(sCLK20M) begin
 		if (sCLK20M'event and sCLK20M = '1') then
 			if (gRST = '1') then
-				rANGLE  <= cANGLE;
-				rSERVO  <= (others => '0');
-				rCNT20M <= (others => '0');
-				rTG     <= '0';
-				rTG2    <= '0';
+				rANGLE   <= cANGLE;
+				rSERVO   <= (others => '0');
+				rCNT20M  <= (others => '0');
+				rTG      <= '0';
+				rTG2     <= '0';
 				rTMG_CNT <= (others => '0');
+				rRCIN    <= cRCIN;
 			else
 				case sGPIO20M(11 downto 8) is
 					when x"0"   => rANGLE( 0) <= sGPIO20M(7 downto 0);
@@ -322,6 +324,8 @@ begin
 					end if;
 				end if;
 				
+				rRCIN <= rRCIN(0) & iRCIN;   -- ”ñ“¯Šú‘Îô
+				
 			end if;
 		end if;
 	end process;
@@ -329,12 +333,10 @@ begin
 	P_FF_PS : process(sCLK_PS) begin
 		if (sCLK_PS'event and sCLK_PS = '1') then
 			if (gRST = '1') then
-				rBUTTON <= '0';
+				rBUTTON <= (others => '0');
 				rGPIO   <= (others => '0');
-				rRCIN   <= (others => '0');
 			else
 				rBUTTON <= rBUTTON(0) & iBUTTON; -- ”ñ“¯Šú‘Îô
-				rRCIN   <= rRCIN(0)   & iRCIN;   -- ”ñ“¯Šú‘Îô
 				rGPIO   <= sGPIO;
 			end if;
 		end if;
@@ -422,7 +424,7 @@ begin
 	port map(
 		iCLK  => sCLK20M ,
 		iRST  => gRST    ,
-		iRCV  => rRCIN(0) ,
+		iRCV  => rRCIN(1)(0) ,
 		oRCV  => sRCV4_PL(7 downto 0)
 	);
 
@@ -437,7 +439,7 @@ begin
 	port map(
 		iCLK  => sCLK20M ,
 		iRST  => gRST    ,
-		iRCV  => rRCIN(1) ,
+		iRCV  => rRCIN(1)(1) ,
 		oRCV  => sRCV4_PL(15 downto 8)
 	);
 
@@ -479,7 +481,7 @@ begin
 	GPIO(24) <= rSERVO(12); --
 	GPIO(25) <= sLED(6);
 
-	sGPI(0) <= rBUTTON;
+	sGPI(0) <= rBUTTON(1);
 
 	PUDC       <= 'Z';
 	
