@@ -14,6 +14,7 @@
 -- 
 -- Revision:
 -- Revision 0.01 - File Created
+-- Revision 0.02 - 入力ポート　非同期対策
 -- Additional Comments:
 -- 
 ----------------------------------------------------------------------------------
@@ -214,9 +215,11 @@ architecture RTL of TE0726_TOP is
 	signal   rTG2     : std_logic                     := '0';
 	signal   rTMG_CNT : std_logic_vector(3 downto 0) := (others => '0');
 
+	--
 	signal   sGPI     : std_logic_vector(3 downto 0) ;
-	signal   rRCIN    : std_logic_vector(1 downto 0) := (others => '0');
-	signal   rBUTTON  : std_logic                    := '0';
+	type tRCIN_ARRY is array (0 to 1) of std_logic_vector(3 downto 0);
+	signal   rRCIN    : tRCIN_ARRY                    := (others => (others => '0'));
+	signal   rBUTTON  : std_logic_vector( 1 downto 0) := (others => '0');
 	signal   sRCV4    : std_logic_vector(31 downto 0);
 	signal   sRCV4_PL : std_logic_vector(31 downto 0);
 
@@ -330,9 +333,9 @@ begin
 				rGPIO   <= (others => '0');
 				rRCIN   <= (others => '0');
 			else
-				rBUTTON <= iBUTTON;
+				rBUTTON <= rBUTTON(0) & iBUTTON; -- 非同期対策
+				rRCIN   <= rRCIN(0)   & iRCIN;   -- 非同期対策
 				rGPIO   <= sGPIO;
-				rRCIN   <= iRCIN;
 			end if;
 		end if;
 	end process;
